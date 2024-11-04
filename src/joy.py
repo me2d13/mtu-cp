@@ -16,7 +16,6 @@ def get_device() -> usb_hid.Device:
     raise ValueError("Could not find Joystick HID device - check boot.py.)")
 
 class Joystick:
-
     def __init__(self):
         self._joy_device = get_device()
         self._report = bytearray(14)

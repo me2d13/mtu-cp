@@ -63,18 +63,11 @@ async def led_blicks():
         led.value = False
         await async_sleep(1)
 
-async def joy_demo():
-    while True:
-        joy.demo()
-        joy.send()
-        await async_sleep(5)
-
 async def main():
     await gather(
         create_task(handle_http_requests()),
         create_task(led_blicks()),
         create_task(send_http_logs()),
-        create_task(joy_demo()),
     )
 
 run(main())

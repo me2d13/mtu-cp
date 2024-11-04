@@ -1,6 +1,7 @@
-from adafruit_httpserver import Server, Request, Response, Websocket, GET, MIMETypes, JSONResponse
+from adafruit_httpserver import Server, Request, Response, Websocket, GET, MIMETypes
 import wifi
 from log import log_items, get_last_log, pdebug
+from api import JoyApi
 import gc
 
 MIMETypes.configure(
@@ -62,6 +63,7 @@ class WebServer:
         self.joystick = joystick
         # Create an HTTP server instance
         self.server = Server(pool, "/static", debug=True)
+        self.joy_api = JoyApi(joystick, self.server)
         self.websocket: Websocket = None
         self.current_page = "/"
         self.last_sent_log = None
@@ -88,6 +90,7 @@ class WebServer:
                 self.build_nav(), 
                 "joy.js")}", 
               content_type='text/html')
+        
 
         @self.server.route("/about")
         def aboutPage(request):
@@ -100,19 +103,6 @@ class WebServer:
                 self.websocket.close()  # Close any existing connection
             self.websocket = Websocket(request)
             return self.websocket
-
-        @self.server.route("/api/joy")
-        def getJoystick(request):
-            data = {
-                "x": self.joystick._joy_x,
-                "y": self.joystick._joy_y,
-                "z": self.joystick._joy_z,
-                "rx": self.joystick._joy_r_x,
-                "ry": self.joystick._joy_r_y,
-                "rz": self.joystick._joy_r_z,
-                "buttons": self.joystick._buttons_state,
-            }
-            return JSONResponse(request, data)
 
     def render_logs(self):
         def to_log_line(log_item):
