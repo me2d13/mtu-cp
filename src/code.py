@@ -6,6 +6,7 @@ import ipaddress
 import wifi
 import socketpool
 import web
+import joy
 from log import pdebug, log_memory
 from mtu_time import set_time_from_ntp
 from asyncio import create_task, gather, run, sleep as async_sleep
@@ -26,10 +27,14 @@ log_memory()
 pool = socketpool.SocketPool(wifi.radio)
 
 set_time_from_ntp(pool)
-
 log_memory()
+
+joy = joy.Joystick()
+pdebug("Joystick set")
+log_memory()
+
 pdebug("Starting web server...")
-server = web.WebServer(pool)
+server = web.WebServer(pool, joy)
 server.start()
 
 #  prints MAC address to REPL
@@ -38,6 +43,7 @@ pdebug("My MAC addr:", [hex(i) for i in wifi.radio.mac_address])
 #  prints IP address to REPL
 pdebug("My IP address is", wifi.radio.ipv4_address)
 log_memory()
+
 
 async def handle_http_requests():
     while True:
@@ -57,11 +63,18 @@ async def led_blicks():
         led.value = False
         await async_sleep(1)
 
+async def joy_demo():
+    while True:
+        joy.demo()
+        joy.send()
+        await async_sleep(5)
+
 async def main():
     await gather(
         create_task(handle_http_requests()),
         create_task(led_blicks()),
         create_task(send_http_logs()),
+        create_task(joy_demo()),
     )
 
 run(main())

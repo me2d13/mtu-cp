@@ -1,5 +1,4 @@
-from adafruit_httpserver import Server, Request, Response, Websocket, GET, MIMETypes, FileResponse
-#from asyncio import create_task, gather, run, sleep as async_sleep
+from adafruit_httpserver import Server, Request, Response, Websocket, GET, MIMETypes, JSONResponse
 import wifi
 from log import log_items, get_last_log, pdebug
 import gc
@@ -13,6 +12,7 @@ MIMETypes.configure(
 pages = {
     "/": "Main",
     "/log": "Log",
+    "/joy": "Joystick",
     "/about": "About",
 }
 
@@ -58,7 +58,8 @@ def webpage(title, content, nav, js = None):
     return html
 
 class WebServer:
-    def __init__(self, pool):
+    def __init__(self, pool, joystick):
+        self.joystick = joystick
         # Create an HTTP server instance
         self.server = Server(pool, "/static", debug=True)
         self.websocket: Websocket = None
@@ -68,17 +69,29 @@ class WebServer:
         # Add a route for the root path
         @self.server.route("/")
         def mainPage(request):
-            self.current_page = list(pages)[0]
+            self.current_page = "/"
             return Response(request, f"{webpage('MTU control', 'Hello', self.build_nav())}", content_type='text/html')
 
         @self.server.route("/log")
         def logPage(request):
-            self.current_page = list(pages)[1]
+            self.current_page = "/log"
             return Response(request, f"{webpage('Logs', self.render_logs(), self.build_nav(), "log.js")}", content_type='text/html')
+
+        @self.server.route("/joy")
+        def joyPage(request):
+            self.current_page = "/joy"
+            with open("/static/joy.html", "r") as file:
+                content = file.read()
+            return Response(request, f"{webpage(
+                'Joystick', 
+                content, 
+                self.build_nav(), 
+                "joy.js")}", 
+              content_type='text/html')
 
         @self.server.route("/about")
         def aboutPage(request):
-            self.current_page = list(pages)[2]
+            self.current_page = "/about"
             return Response(request, f"{webpage('MTU about', 'About', self.build_nav())}", content_type='text/html')
 
         @self.server.route("/connect-websocket", GET)
@@ -87,6 +100,19 @@ class WebServer:
                 self.websocket.close()  # Close any existing connection
             self.websocket = Websocket(request)
             return self.websocket
+
+        @self.server.route("/api/joy")
+        def getJoystick(request):
+            data = {
+                "x": self.joystick._joy_x,
+                "y": self.joystick._joy_y,
+                "z": self.joystick._joy_z,
+                "rx": self.joystick._joy_r_x,
+                "ry": self.joystick._joy_r_y,
+                "rz": self.joystick._joy_r_z,
+                "buttons": self.joystick._buttons_state,
+            }
+            return JSONResponse(request, data)
 
     def render_logs(self):
         def to_log_line(log_item):
@@ -116,6 +142,6 @@ class WebServer:
             def to_json_item(log_item):
                 return f"\"{log_item.log_number}\":\"{log_item.to_string()}\""
             json_logs_element = "{" + ",".join(map(to_json_item, log_items)) + "}"
-            metadata_element = "{\"memory\":"+str(gc.mem_free())+"}"
-            self.websocket.send_message("{\"logs\":"+json_logs_element+",\"metadata\":"+metadata_element+"}", fail_silently=True)
+            data_element = "{\"memory\":"+str(gc.mem_free())+"}"
+            self.websocket.send_message("{\"logs\":"+json_logs_element+",\"data\":"+data_element+"}", fail_silently=True)
             self.last_sent_log = get_last_log()
