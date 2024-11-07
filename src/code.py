@@ -13,6 +13,7 @@ from asyncio import create_task, gather, run, sleep as async_sleep
 from lcd import enumerate_i2c, Lcd
 from screen import Screen
 import state
+from tmc2208 import TMC_UART
 
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
@@ -86,5 +87,9 @@ async def main():
         create_task(send_http_logs()),
         create_task(screen_task()),
     )
+
+tmc = TMC_UART(115200)
+tmc.test_uart(0x02)
+#pdebug("GCONF", tmc.read_int(0))
 
 run(main())

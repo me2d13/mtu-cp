@@ -29,6 +29,11 @@ def pdebug(*args):
     print(*args)
     debug(" ".join(map(str, args)))
 
+# print and error
+def perror(*args):
+    print(*args)
+    add_raw_log(time.localtime(), "ERROR", " ".join(map(str, args)))
+
 def log_memory():
     gc.collect()
     pdebug("Free mem:", gc.mem_free())
