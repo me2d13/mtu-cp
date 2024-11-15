@@ -1,7 +1,7 @@
 from adafruit_httpserver import Server, Request, Response, Websocket, GET, MIMETypes
 import wifi
 from log import log_items, get_last_log, pdebug
-from api import JoyApi
+from api import JoyApi, MotorApi
 import gc
 
 MIMETypes.configure(
@@ -14,6 +14,7 @@ pages = {
     "/": "Main",
     "/log": "Log",
     "/joy": "Joystick",
+    "/motors": "Motors",
     "/about": "About",
 }
 
@@ -59,11 +60,12 @@ def webpage(title, content, nav, js = None):
     return html
 
 class WebServer:
-    def __init__(self, pool, joystick):
+    def __init__(self, pool, joystick, motor):
         self.joystick = joystick
         # Create an HTTP server instance
         self.server = Server(pool, "/static", debug=True)
         self.joy_api = JoyApi(joystick, self.server)
+        self.motor_api = MotorApi(self.server, motor)
         self.websocket: Websocket = None
         self.current_page = "/"
         self.last_sent_log = None
@@ -91,6 +93,17 @@ class WebServer:
                 "joy.js")}", 
               content_type='text/html')
         
+        @self.server.route("/motors")
+        def joyPage(request):
+            self.current_page = "/motors"
+            with open("/static/motors.html", "r") as file:
+                content = file.read()
+            return Response(request, f"{webpage(
+                'Motors', 
+                content, 
+                self.build_nav(), 
+                "motors.js")}", 
+              content_type='text/html')
 
         @self.server.route("/about")
         def aboutPage(request):

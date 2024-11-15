@@ -220,8 +220,8 @@ class TMC_UART:
         time.sleep(self.communication_pause)
 
         rtn = self.ser.read(12)
-        pdebug(f"received {len(rtn)} bytes; {len(rtn*8)} bits")
-        pdebug(rtn.hex())
+        #pdebug(f"received {len(rtn)} bytes; {len(rtn*8)} bits")
+        #pdebug(rtn.hex())
 
         time.sleep(self.communication_pause)
 
@@ -263,6 +263,7 @@ class TMC_UART:
                 return -1
 
         val = struct.unpack(">i",rtn_data)[0]
+        pdebug(f"From regiter {hex(register)} read value {hex(val)}")
         return val
 
 
@@ -278,7 +279,7 @@ class TMC_UART:
             val (int): value for that register
         """
         if self.ser is None:
-            pdebug("Cannot write reg, serial is not initialized", Loglevel.ERROR)
+            perror("Cannot write reg, serial is not initialized")
             return False
 
         #self.ser.reset_output_buffer()
@@ -294,10 +295,11 @@ class TMC_UART:
 
         self.w_frame[7] = self.compute_crc8_atm(self.w_frame[:-1])
 
+        pdebug(f"Writing to reg {hex(register)} value {hex(val)}")
 
         rtn = self.ser.write(self.w_frame)
         if rtn != len(self.w_frame):
-            pdebug("Err in write", Loglevel.ERROR)
+            perror("Err in write")
             return False
 
         time.sleep(self.communication_pause)
@@ -317,7 +319,7 @@ class TMC_UART:
             tries: how many tries, before error is raised (Default value = 10)
         """
         if self.ser is None:
-            pdebug("Cannot write reg check, serial is not initialized", Loglevel.ERROR)
+            perror("Cannot write reg check, serial is not initialized")
             return False
         ifcnt1 = self.read_int(IFCNT)
 
@@ -329,12 +331,12 @@ class TMC_UART:
             tries -= 1
             ifcnt2 = self.read_int(IFCNT)
             if ifcnt1 >= ifcnt2:
-                pdebug("writing not successful!", Loglevel.ERROR)
+                perror("writing not successful!")
                 pdebug(f"ifcnt: {ifcnt1}, {ifcnt2}")
             else:
                 return True
             if tries<=0:
-                pdebug("after 10 tries no valid write access", Loglevel.ERROR)
+                perror("after 10 tries no valid write access")
                 self.handle_error()
                 return -1
 

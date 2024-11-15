@@ -1,0 +1,22 @@
+<div id="data"></div>
+<button onclick="getMotorData(0)">Get data</button>
+<hr />
+<button onclick="sendMotorInit(0)">Send init</button>
+<hr />
+Microsteps: <input id="mSteps" />
+Current: <input id="current" />
+<button onclick="sendMotorConfig(0, document.getElementById('mSteps').value, document.getElementById('current').value)">Send config</button>
+<hr />
+Steps: <input id="steps"/>
+Rpm: <input id="rpm"/>
+Direction: <input type="radio" name="dir" value="1" checked>Forward &nbsp; &nbsp;
+<input type="radio" name="dir" value="0" >Backward
+<button onclick="moveMotor(0, 
+  document.getElementById('steps').value, 
+  document.querySelector('input[name=\'dir\']:checked').value,
+  document.getElementById('rpm').value)">Move</button>
+<hr />
+<button onclick="sendMotorHold(0,1)">Hold</button><button onclick="sendMotorHold(0,0)">Release</button>
+<hr />
+Speed: <input id="speed"/>
+<button onclick="runMotor(0, document.getElementById('speed').value)">Run</button>

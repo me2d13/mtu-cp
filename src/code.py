@@ -1,49 +1,31 @@
 import board
 import digitalio
-import time
 import os
 import ipaddress
 import wifi
 import socketpool
-import web
-import joy
 from log import pdebug, log_memory
 from mtu_time import set_time_from_ntp
 from asyncio import create_task, gather, run, sleep as async_sleep
-from lcd import enumerate_i2c, Lcd
-from screen import Screen
+from lcd import enumerate_i2c
+from container import Container
 import state
-from tmc2208 import TMC_UART
 
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
-
-log_memory()
 print("Connecting to WiFi")
-
-#  connect to your SSID
 wifi.radio.connect(os.getenv('CIRCUITPY_WIFI_SSID'), os.getenv('CIRCUITPY_WIFI_PASSWORD'))
-
 pdebug("Connected to WiFi" )
-log_memory()
-
-st = state.MtuState()
-
 pool = socketpool.SocketPool(wifi.radio)
-
 set_time_from_ntp(pool)
-log_memory()
 
-enumerate_i2c()
+#enumerate_i2c()
 
-joy = joy.Joystick()
-pdebug("Joystick set")
-log_memory()
+container = Container(pool)
 
 pdebug("Starting web server...")
-server = web.WebServer(pool, joy)
-server.start()
+container.server.start()
 
 #  prints MAC address to REPL
 pdebug("My MAC addr:", [hex(i) for i in wifi.radio.mac_address])
@@ -52,19 +34,17 @@ pdebug("My MAC addr:", [hex(i) for i in wifi.radio.mac_address])
 pdebug("My IP address is", wifi.radio.ipv4_address)
 log_memory()
 
-st.put(state.SK_IP_ADDRESS, str(wifi.radio.ipv4_address))
-
-screen = Screen(Lcd(), st)
+container.state.put(state.SK_IP_ADDRESS, str(wifi.radio.ipv4_address))
 
 async def handle_http_requests():
     while True:
-        server.poll()
+        container.server.poll()
         await async_sleep(0)
 
 async def send_http_logs():
     while True:
         #log_memory()
-        server.send_logs_if_needed()
+        container.server.send_logs_if_needed()
         await async_sleep(1)
 
 async def led_blicks():
@@ -77,8 +57,13 @@ async def led_blicks():
 async def screen_task():
     while True:
         # for now make it simple, no change screen trigger
-        wait_time = screen.render()
+        wait_time = container.screen.render()
         await async_sleep(wait_time)
+
+async def motors_task():
+    while True:
+        container.motor.check_step()
+        await async_sleep(0)
 
 async def main():
     await gather(
@@ -86,10 +71,7 @@ async def main():
         create_task(led_blicks()),
         create_task(send_http_logs()),
         create_task(screen_task()),
+        create_task(motors_task()),
     )
-
-tmc = TMC_UART(115200)
-tmc.test_uart(0x02)
-#pdebug("GCONF", tmc.read_int(0))
 
 run(main())
