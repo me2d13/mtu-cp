@@ -7,7 +7,7 @@ TMC_UART stepper driver uart module
 import time
 import struct
 import busio
-import board
+import config
 from log import pdebug, perror
 
 #pylint: disable=invalid-name
@@ -133,7 +133,7 @@ class TMC_UART:
             mtr_id (int, optional): driver address [0-3]. Defaults to 0.
         """
         try:
-            self.ser = busio.UART(board.GP4, board.GP5, baudrate=baudrate)
+            self.ser = busio.UART(config.UART_TX, config.UART_RX, baudrate=baudrate)
         except Exception as e:
             errnum = e.args[0]
             pdebug(f"SERIAL ERROR: {e}")

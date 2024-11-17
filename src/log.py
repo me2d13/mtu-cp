@@ -13,7 +13,7 @@ class LogItem:
     def to_string(self):
         return f"{self.log_time}: {self.level} {self.message}"
 
-log_items = deque([], 20)
+log_items = deque([], 100)
 log_counter = 0
 
 def add_raw_log(log_time, level, message):

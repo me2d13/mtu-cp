@@ -1,4 +1,4 @@
-import board
+import config
 import busio
 from log import pdebug
 from lcd_pico_lib import I2cLcd
@@ -6,7 +6,7 @@ from lcd_pico_lib import I2cLcd
 def enumerate_i2c():
     pdebug("Enumerating i2c...")
     #i2c = board.STEMMA_I2C()  # uses board.SCL and board.SDA
-    i2c = busio.I2C(board.GP1, board.GP0)
+    i2c = busio.I2C(config.LCD_I2C_CLOCK, config.LCD_I2C_DATA)
     i2c.try_lock()
     try:
         for device_address in i2c.scan():
@@ -16,7 +16,7 @@ def enumerate_i2c():
 
 class Lcd:
     def __init__(self):
-        self.i2c = busio.I2C(board.GP1, board.GP0)
+        self.i2c = busio.I2C(config.LCD_I2C_CLOCK, config.LCD_I2C_DATA)
         self.i2c.try_lock()
         try:
             self.lcd = I2cLcd(self.i2c, 0x27, 4, 20)

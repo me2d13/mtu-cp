@@ -11,8 +11,11 @@ from lcd import enumerate_i2c
 from container import Container
 import state
 
-led = digitalio.DigitalInOut(board.LED)
-led.direction = digitalio.Direction.OUTPUT
+#led = digitalio.DigitalInOut(board.LED)
+#led.direction = digitalio.Direction.OUTPUT
+
+# neopixel not working until connected, see https://github.com/orgs/micropython/discussions/11097
+#led = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.6, auto_write=True, pixel_order=neopixel.GRB)
 
 print("Connecting to WiFi")
 wifi.radio.connect(os.getenv('CIRCUITPY_WIFI_SSID'), os.getenv('CIRCUITPY_WIFI_PASSWORD'))
@@ -49,9 +52,12 @@ async def send_http_logs():
 
 async def led_blicks():
     while True:
-        led.value = True
+        #led.value = True
+        led[0] = (0x10, 0, 0)
+        #led.show()
         await async_sleep(0.2)
-        led.value = False
+        #led.value = False
+        #led[0] = (0, 0, 0)
         await async_sleep(1)
 
 async def screen_task():
@@ -68,7 +74,7 @@ async def motors_task():
 async def main():
     await gather(
         create_task(handle_http_requests()),
-        create_task(led_blicks()),
+        #create_task(led_blicks()),
         create_task(send_http_logs()),
         create_task(screen_task()),
         create_task(motors_task()),

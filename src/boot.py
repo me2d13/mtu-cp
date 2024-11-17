@@ -3,8 +3,8 @@ import supervisor
 
 # Define custom VID, PID, product name, and manufacturer
 CUSTOM_VID = 0xDDFD  # Non-registered VID
-CUSTOM_PID = 0x5051  # Non-registered PID
-PRODUCT_NAME = "MTU_v1"
+CUSTOM_PID = 0x5052  # Non-registered PID
+PRODUCT_NAME = "MTU_v2"
 MANUFACTURER_NAME = "Me2d"
 
 # Set USB identification

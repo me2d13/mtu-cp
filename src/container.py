@@ -12,7 +12,7 @@ class Container:
         self.state = MtuState()
         self.tmc = TMC_UART(115200)
         self.joy = Joystick()
-        self.motor = Motor(self.tmc, board.GP18, board.GP19)
+        self.motor = Motor(self.tmc, board.GPIO17, board.GPIO18)
         self.server = WebServer(pool, self.joy, self.motor)
         self.screen = Screen(Lcd(), self.state)
 

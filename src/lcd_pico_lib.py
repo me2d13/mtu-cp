@@ -329,12 +329,15 @@ class I2cLcd(LcdApi):
 
     def hal_write_data(self, data):
         """Write data to the LCD."""
-        byte = (MASK_RS | (self.backlight << SHIFT_BACKLIGHT) | (((data >> 4) & 0x0f) << SHIFT_DATA))
-        self.i2c.writeto(self.i2c_addr, bytearray([byte | MASK_E]))
-        self.i2c.writeto(self.i2c_addr, bytearray([byte]))
-        byte = (MASK_RS | (self.backlight << SHIFT_BACKLIGHT) | ((data & 0x0f) << SHIFT_DATA))
-        self.i2c.writeto(self.i2c_addr, bytearray([byte | MASK_E]))
-        self.i2c.writeto(self.i2c_addr, bytearray([byte]))
+        try:
+            byte = (MASK_RS | (self.backlight << SHIFT_BACKLIGHT) | (((data >> 4) & 0x0f) << SHIFT_DATA))
+            self.i2c.writeto(self.i2c_addr, bytearray([byte | MASK_E]))
+            self.i2c.writeto(self.i2c_addr, bytearray([byte]))
+            byte = (MASK_RS | (self.backlight << SHIFT_BACKLIGHT) | ((data & 0x0f) << SHIFT_DATA))
+            self.i2c.writeto(self.i2c_addr, bytearray([byte | MASK_E]))
+            self.i2c.writeto(self.i2c_addr, bytearray([byte]))
+        except OSError:
+            perror("Error writing display data")
 
     def hal_sleep_us(self, usecs):
         """Sleep for some time (given in microseconds)."""

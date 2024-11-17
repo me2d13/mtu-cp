@@ -59,4 +59,9 @@ class MotorApi:
                     methods=POST,
                     handler=config,
                 ),
+                Route(
+                    path="/api/motor/<index>/data",
+                    methods=GET,
+                    handler=get_data,
+                ),
             ])
