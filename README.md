@@ -1,6 +1,14 @@
 # Motorised throttle unit v2
 This is 2nd version of custom software for motorised throttle unit (MTU) this time in Circuitpython running at ESP32-S3.
 
+# Update
+Giving up with circuit python, it doesn't seem stable enough. Will continue with C version and platform.io [here](https://github.com/me2d13/mtu-pio)
+
+Issues I had with circuitpython
+- random freezes and safe mode reboots due to internal watchdog
+- pins in use when used for I2C (mainly secondary, for HW with 2 buses)
+- random IO error on I2C bus
+
 # Hardware
 
 - ESP32-S3 at module [YD-ESP32-S3 N16R8](https://circuitpython.org/board/yd_esp32_s3_n16r8/)
